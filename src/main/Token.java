@@ -6,18 +6,21 @@ public class Token {
     public static final int TYPE_ATTRIBUTE = 2;
     public static final int TYPE_IGNORE =0;
 
-    private String value;
+    private String string;
     private int type;
     private int score;
 
-    public Token(String value, int type, int score) {
-        this.value = value;
+    public Token(String string, int type, int score) {
+        this.string = string;
         this.type = type;
-        this.score = score;
+        if (type == TYPE_IGNORE)
+            this.score = 0;
+        else
+            this.score = score;
     }
 
-    public String getValue() {
-        return value;
+    public String getString() {
+        return string;
     }
 
     public int getType() {
