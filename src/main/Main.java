@@ -1,4 +1,4 @@
-package GUIDesigner;
+package main;
 
 import java.io.*;
 import java.net.URL;
@@ -76,18 +76,6 @@ public class Main {
             ignoredtoks.add(line);
         }
 
-    }
-
-    public static String AskDexonline(String cuvant) throws Exception {
-        URL dex = new URL("https://dexonline.ro/definitie/"+cuvant);
-        URLConnection con = dex.openConnection();
-        BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-        String inputLine;
-        String resp_body="";
-        while ((inputLine = in.readLine()) != null)
-            resp_body+=inputLine;
-        in.close();
-        return resp_body.substring(resp_body.indexOf("<p>"),resp_body.indexOf("</p>"));
     }
 
 

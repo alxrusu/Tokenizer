@@ -1,4 +1,0 @@
-mare : 10
-frumos : 11
-cel mai bun : 20
-urat : -11
