@@ -8,9 +8,9 @@ public class Token {
 
     private String string;
     private int type;
-    private int score;
+    private float score;
 
-    public Token(String string, int type, int score) {
+    public Token(String string, int type, float score) {
         this.string = string;
         this.type = type;
         if (type == TYPE_IGNORE)
@@ -27,7 +27,7 @@ public class Token {
         return type;
     }
 
-    public int getScore() {
+    public float getScore() {
         return score;
     }
 }
