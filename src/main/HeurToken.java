@@ -56,6 +56,7 @@ public class HeurToken {
                 case "sub":
                     type = Token.TYPE_FEATURE;
                     break;
+                case "adj":
                 case "adv":
                     type = Token.TYPE_ATTRIBUTE;
                     break;

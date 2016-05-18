@@ -1,8 +1,6 @@
 package main;
 
 import java.io.*;
-import java.net.URL;
-import java.net.URLConnection;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -21,82 +19,37 @@ public class Main {
     static final String USER = "stefania.baincescu";
     static final String PASS = "Alex0974";
 
-
-
+    static Path ignorespath= Paths.get("ignore.txt");
+    static Path featurespath= Paths.get("features.txt");
+    static Path attributespath= Paths.get("attributes.txt");
+    static Charset charset = Charset.forName("ISO-8859-1");
 
     public static void InitTokValues() throws IOException {
 
-        features.put("decomandat",2);
-        features.put("acces",1);
-        features.put("centru",2);
-        features.put("zona",1);
-        features.put("vecini",1);
-        features.put("living",2);
-        features.put("terasa",3);
-        features.put("birou",2);
-        features.put("bucatarie",2);
-        features.put("baie",1);
-        features.put("bai",2);
-        features.put("semineu",2);
-        features.put("centrala",1);
-        features.put("tamplarie",2);
-        features.put("geam",1);
-        features.put("geamuri",1);
-        features.put("usa",1);
-
-
-        attributes.put("superb",2);
-        attributes.put("deosebit",2);
-        attributes.put("rara",1);
-        attributes.put("separat",1);
-        attributes.put("linistita",2);
-        attributes.put("linistiti",2);
-        attributes.put("spatios",3);
-        attributes.put("calitate",2);
-        attributes.put("termopan",2);
-        attributes.put("antiefractie",2);
-
-        Path fpath= Paths.get("tokvalues.txt");
-        Charset charset = Charset.forName("ISO-8859-1");
-
-        List<String> lines = Files.readAllLines(fpath, charset);
-
+        List<String> lines = Files.readAllLines(featurespath, charset);
         for (String line : lines) {
             //System.out.println(line);
             String tok=line.substring(0,line.indexOf(" : "));
             Integer value=Integer.parseInt(line.substring(line.indexOf(" : ")+3));
-            tokvalues.put(tok,value);
+            features.put(tok,value);
+
         }
 
-        Path fpath2= Paths.get("ignore.txt");
 
-        List<String> lines2 = Files.readAllLines(fpath2, charset);
+        lines = Files.readAllLines(attributespath, charset);
+        for (String line : lines) {
+            //System.out.println(line);
+            String tok=line.substring(0,line.indexOf(" : "));
+            Integer value=Integer.parseInt(line.substring(line.indexOf(" : ")+3));
+            attributes.put(tok,value);
+        }
 
+
+        List<String> lines2 = Files.readAllLines(ignorespath, charset);
         for (String line : lines) {
             ignoredtoks.add(line);
         }
 
-    }
-
-
-    public static void LogUnclassified(String tk)
-    {
-        BufferedWriter bw = null;
-        try {
-            // APPEND MODE SET HERE
-            bw = new BufferedWriter(new FileWriter("unclassified.txt", true));
-            bw.write(tk);
-            bw.newLine();
-            bw.flush();
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-        } finally {                       // always close the file
-            if (bw != null) try {
-                bw.close();
-            } catch (IOException ioe2) {
-                // just ignore it
-            }
-        } // end try/catch/finally
     }
 
 
@@ -124,14 +77,14 @@ public class Main {
 
             if (!isInteger(tk))
             {
-                if (!tokvalues.containsKey(tk))
+                if ((!features.containsKey(tk) && !attributes.containsKey(tk)) || ignoredtoks.contains(tk))
                 {
                     tklist.remove(i);
                     i--;
                     if (!ignoredtoks.contains(tk))
                     {
                         //System.out.println("no data found for token: \""+tk+"\" ... Sending it for Classification");
-                        //LogUnclassified(tk);
+                        //HeurToken.generateHeurToken(tk);
                     }
                 }
             }
@@ -156,15 +109,15 @@ public class Main {
                 System.out.print("F");
             }
             else
-                if (attributes.containsKey(tk)) {
-                    current_tok*=(int)attributes.get(tk);
-                    if (current_tok==0) {
-                        current_tok = (int) attributes.get(tk);
-                        num_toks++;
-                    }
-                    System.out.print("A");
-
+            if (attributes.containsKey(tk)) {
+                current_tok*=(int)attributes.get(tk);
+                if (current_tok==0) {
+                    current_tok = (int) attributes.get(tk);
+                    num_toks++;
                 }
+                System.out.print("A");
+
+            }
         }
 
         sum += current_tok;
@@ -260,5 +213,5 @@ public class Main {
             }
         }
 
-}
+    }
 }
