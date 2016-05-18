@@ -1,6 +1,7 @@
 package main;
 
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -11,10 +12,7 @@ import java.util.*;
 public class Main {
     static final String JDBC_DRIVER = "com.mysql.jdbc.Driver";
     static final String DB_URL = "jdbc:mysql://85.122.23.50/stefania.baincescu";
-    static Map tokvalues=new HashMap<>();
-    static Map features=new HashMap<>();
-    static Map attributes =new HashMap<>();
-    static ArrayList<String> ignoredtoks=new ArrayList<>();
+    static Map tokens=new HashMap<>();
     //  Database credentials
     static final String USER = "stefania.baincescu";
     static final String PASS = "Alex0974";
@@ -31,8 +29,7 @@ public class Main {
             //System.out.println(line);
             String tok=line.substring(0,line.indexOf(" : "));
             Integer value=Integer.parseInt(line.substring(line.indexOf(" : ")+3));
-            features.put(tok,value);
-
+            tokens.put(tok,new Token(tok,Token.TYPE_FEATURE,value));
         }
 
 
@@ -41,13 +38,13 @@ public class Main {
             //System.out.println(line);
             String tok=line.substring(0,line.indexOf(" : "));
             Integer value=Integer.parseInt(line.substring(line.indexOf(" : ")+3));
-            attributes.put(tok,value);
+            tokens.put(tok,new Token(tok,Token.TYPE_ATTRIBUTE,value));
         }
 
 
-        List<String> lines2 = Files.readAllLines(ignorespath, charset);
+        lines = Files.readAllLines(ignorespath, charset);
         for (String line : lines) {
-            ignoredtoks.add(line);
+            tokens.put(line,new Token(line,Token.TYPE_IGNORE,0));
         }
 
     }
@@ -69,55 +66,47 @@ public class Main {
         return true;
     }
 
-    public static void FilterTokens(ArrayList<String> tklist) throws Exception {
-        System.out.println(tklist);
-        for (int i=0;i<tklist.size();i++)
-        {
-            String tk=tklist.get(i);
-
-            if (!isInteger(tk))
-            {
-                if ((!features.containsKey(tk) && !attributes.containsKey(tk)) || ignoredtoks.contains(tk))
-                {
-                    tklist.remove(i);
-                    i--;
-                    if (!ignoredtoks.contains(tk))
-                    {
-                        //System.out.println("no data found for token: \""+tk+"\" ... Sending it for Classification");
-                        //HeurToken.generateHeurToken(tk);
-                    }
-                }
-            }
-        }
-        System.out.println(tklist);
-    }
-
-    public static int EvalTokens(ArrayList<String> tklist)
-    {
+    public static int EvalTokens(ArrayList<String> tklist) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
 
         int sum=0;
         int current_tok=0;
         int num_toks=0;
 
-        for (int i=0;i<tklist.size();i++)
-        {
-            String tk=tklist.get(i);
-            if (features.containsKey(tk)) {
-                sum += current_tok;
-                num_toks++;
-                current_tok= (int) features.get(tk);
-                System.out.print("F");
+        for (String tk : tklist) {
+
+            Token temptk;
+
+            if (tokens.containsKey(tk)) {
+                temptk = (Token) tokens.get(tk);
+            } else {
+                temptk = HeurToken.generateHeurToken(tk);
+                if (temptk == null)
+                    continue;
             }
-            else
-            if (attributes.containsKey(tk)) {
-                current_tok*=(int)attributes.get(tk);
-                if (current_tok==0) {
-                    current_tok = (int) attributes.get(tk);
+
+
+            switch (temptk.getType()) {
+                case Token.TYPE_FEATURE:
+                    sum += current_tok;
                     num_toks++;
-                }
-                System.out.print("A");
+                    current_tok = temptk.getScore();
+                    System.out.print("F");
+                    break;
+
+                case Token.TYPE_ATTRIBUTE:
+                    current_tok += temptk.getScore(); //PLUS SI VEDEM NOI MAI INCOLO - Lucian - 2016
+                    if (current_tok == 0) {
+                        current_tok = temptk.getScore();
+                        num_toks++;
+                    }
+                    System.out.print("A");
+                    break;
+
+                case Token.TYPE_IGNORE:
+                    System.out.print("I");
 
             }
+
         }
 
         sum += current_tok;
@@ -126,7 +115,7 @@ public class Main {
         return sum;
     }
 
-    public static void Digest(String descriere) throws Exception {
+    public static int Digest(String descriere) throws Exception {
         while (descriere.contains(","))
             descriere=descriere.substring(0,descriere.indexOf(","))+descriere.substring(descriere.indexOf(",")+1);
         int scor=0;
@@ -151,19 +140,16 @@ public class Main {
             while (st.hasMoreTokens()) {
                 String ctok=st.nextToken().toLowerCase();
                 tklist.add(ctok);
-                //System.out.println(ctok);
             }
 
             System.out.println(tklist);
-            //FilterTokens(tklist);
             int scor_partial=EvalTokens(tklist);
             System.out.println(scor_partial);
             scor+=scor_partial;
             //System.out.println(prop);
             //------------------------------------
         }
-        System.out.println(scor);
-
+        return scor;
     }
 
 
@@ -171,28 +157,52 @@ public class Main {
         Main app = new Main();
         Connection conn = null;
         Statement stmt = null;
-        //System.out.print(AskDexonline("cal"));
+
         InitTokValues();
 
         try {
-            //STEP 2: Register JDBC driver
+
             Class.forName("com.mysql.jdbc.Driver");
             conn = DriverManager.getConnection(DB_URL, USER, PASS);
 
             stmt = conn.createStatement();
             String sql;
 
-            sql = "SELECT id_proprietate, descriere FROM Proprietati";
-
+            sql = "SELECT id_proprietate, descriere, evaluare FROM Proprietati";
             ResultSet rs = stmt.executeQuery(sql);
 
             int rc=0;
             while (rs.next() && rc<1) {
-
+                int scor_anterior=rs.getInt("evaluare");
                 int id = rs.getInt("id_proprietate");
                 String descriere = rs.getString("descriere");
                 rc++;
-                Digest(descriere);
+                System.out.println("scorul din evaluarea trecuta:"+scor_anterior);
+                int scor=Digest(descriere);
+                System.out.println(scor);
+
+                String SQLString1 = "UPDATE Proprietati "
+                        + "SET evaluare = ? "
+                        + "WHERE id_proprietate = ?";
+                PreparedStatement statement = null;
+                try {
+                    statement = conn.prepareStatement(SQLString1);
+                    statement.setInt(1, scor);
+                    statement.setInt(2, id);
+                    statement.executeUpdate();
+                }catch (Exception e){
+                    System.out.println("Update error!");
+                    System.out.println(e.getMessage());
+                }finally {
+                    try {
+                        assert statement != null;
+                        statement.close();
+                    } catch (SQLException e) {
+                        System.out.println("Statement close error!");
+                        System.out.println(e.getMessage());
+                    }
+                }
+
             }
             rs.close();
             stmt.close();

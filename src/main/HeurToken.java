@@ -40,7 +40,7 @@ public class HeurToken {
 
 
     private static int generateScore (int wordLength, int defLength) {
-        return (int) Math.log(wordLength + Math.sqrt(defLength));
+        return (int) Math.sqrt(wordLength + Math.sqrt(defLength));
     }
 
     public static Token generateHeurToken (String word) {
