@@ -112,13 +112,16 @@ public class Main {
         sum += current_tok;
         System.out.print("\n");
 
-        return sum;
+        if (num_toks==0)
+            return 0;
+        return sum/num_toks;
     }
 
     public static int Digest(String descriere) throws Exception {
         while (descriere.contains(","))
             descriere=descriere.substring(0,descriere.indexOf(","))+descriere.substring(descriere.indexOf(",")+1);
         int scor=0;
+        int nr_propozitii=0;
         while (descriere.length()>0) {
             int findex=descriere.indexOf(".");
             if (descriere.indexOf("!")<findex && descriere.contains("!"))
@@ -134,7 +137,7 @@ public class Main {
 
             //------------------------------------
             //-----Tokenizare pe propozitii-------
-            System.out.println("------------------------------");
+            //System.out.println("------------------------------");
             StringTokenizer st = new StringTokenizer(prop);
             ArrayList<String> tklist=new ArrayList<>();
             while (st.hasMoreTokens()) {
@@ -142,14 +145,17 @@ public class Main {
                 tklist.add(ctok);
             }
 
-            System.out.println(tklist);
+            //System.out.println(tklist);
             int scor_partial=EvalTokens(tklist);
-            System.out.println(scor_partial);
+            //System.out.println(scor_partial);
             scor+=scor_partial;
+            nr_propozitii++;
             //System.out.println(prop);
             //------------------------------------
         }
-        return scor;
+        if (nr_propozitii<=1)
+            return scor;
+        return (int) (scor/(1 + Math.log (nr_propozitii)));
     }
 
 
@@ -159,6 +165,9 @@ public class Main {
         Statement stmt = null;
 
         InitTokValues();
+
+        int avg_scores=0;
+        int numscores=0;
 
         try {
 
@@ -172,24 +181,57 @@ public class Main {
             ResultSet rs = stmt.executeQuery(sql);
 
             int rc=0;
-            while (rs.next() && rc<1) {
+            int scor_minim=9999999;
+            int scor_maxim=-1;
+
+            Map scores=new HashMap<>();
+            int counter=0;
+            while (rs.next() && rc<10) {
+                System.out.println("Computing Score for : "+counter++);
                 int scor_anterior=rs.getInt("evaluare");
                 int id = rs.getInt("id_proprietate");
                 String descriere = rs.getString("descriere");
-                rc++;
-                System.out.println("scorul din evaluarea trecuta:"+scor_anterior);
+                //rc++;
+                //System.out.println("OLD : "+scor_anterior);
                 int scor=Digest(descriere);
-                System.out.println(scor);
 
+                if (scor<scor_minim) scor_minim=scor;
+                if (scor>scor_maxim) scor_maxim=scor;
+
+                avg_scores+=scor;
+                numscores++;
+                System.out.println( "Total Score : " + scor);
+                scores.put(id,scor);
+            }
+
+            System.out.println("Scor Minim : "+ scor_minim);
+            avg_scores/=numscores;
+            System.out.println("Scor Mediu : "+ avg_scores);
+            System.out.println("Scor Maxim : "+ scor_maxim);
+
+            counter=0;
+            for (Object id:scores.keySet())
+            {
+                System.out.println("Updating Score for : "+counter++);
+                int db_score=(Integer) scores.get(id);
+                if (db_score>avg_scores)
+                {
+                    db_score= (int) ((db_score-avg_scores)*5.5/(scor_maxim - avg_scores));
+                }
+                else
+                {
+                    db_score= -(int) ((-db_score+avg_scores)*5.5/(-scor_minim + avg_scores));
+                }
                 String SQLString1 = "UPDATE Proprietati "
                         + "SET evaluare = ? "
                         + "WHERE id_proprietate = ?";
                 PreparedStatement statement = null;
                 try {
                     statement = conn.prepareStatement(SQLString1);
-                    statement.setInt(1, scor);
-                    statement.setInt(2, id);
+                    statement.setInt(1, db_score);
+                    statement.setInt(2, (Integer) id);
                     statement.executeUpdate();
+                    System.out.println("DB score for "+id+" is "+db_score);
                 }catch (Exception e){
                     System.out.println("Update error!");
                     System.out.println(e.getMessage());
@@ -204,6 +246,8 @@ public class Main {
                 }
 
             }
+
+
             rs.close();
             stmt.close();
             conn.close();
