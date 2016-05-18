@@ -155,7 +155,7 @@ public class Main {
         }
         if (nr_propozitii<=1)
             return scor;
-        return (int) (scor/(1 + Math.log (nr_propozitii)));
+        return (int) (scor/(1 + Math.pow (nr_propozitii, 0.95)));
     }
 
 
@@ -187,12 +187,12 @@ public class Main {
             Map scores=new HashMap<>();
             int counter=0;
             while (rs.next() && rc<10) {
-                System.out.println("Computing Score for : "+counter++);
+                //System.out.println("Computing Score for : "+counter++);
                 int scor_anterior=rs.getInt("evaluare");
                 int id = rs.getInt("id_proprietate");
                 String descriere = rs.getString("descriere");
                 //rc++;
-                //System.out.println("OLD : "+scor_anterior);
+                System.out.println(id +" OLD : "+scor_anterior);
                 int scor=Digest(descriere);
 
                 if (scor<scor_minim) scor_minim=scor;
@@ -200,28 +200,37 @@ public class Main {
 
                 avg_scores+=scor;
                 numscores++;
-                System.out.println( "Total Score : " + scor);
+                System.out.println( "Score : " + scor);
                 scores.put(id,scor);
             }
-
+            //if (rc!=0)
+            //    System.exit(0);
             System.out.println("Scor Minim : "+ scor_minim);
             avg_scores/=numscores;
             System.out.println("Scor Mediu : "+ avg_scores);
             System.out.println("Scor Maxim : "+ scor_maxim);
 
-            counter=0;
+            /*Uniform Distribution*/
+            ArrayList<IntTuple> lista=new ArrayList<>();
             for (Object id:scores.keySet())
+                lista.add(new IntTuple((int)id, (int) scores.get(id)));
+
+            lista.sort((o1, o2) -> {
+                if (o1.score>o2.score)
+                    return 1;
+                if (o1.score<o2.score)
+                    return -1;
+                return 0;
+            });
+            /* End Uniform Distribution*/
+
+            counter=0;
+            for (int i=0;i<lista.size();i++)
             {
+                int id=lista.get(i).id;
                 System.out.println("Updating Score for : "+counter++);
                 int db_score=(Integer) scores.get(id);
-                if (db_score>avg_scores)
-                {
-                    db_score= (int) ((db_score-avg_scores)*5.5/(scor_maxim - avg_scores));
-                }
-                else
-                {
-                    db_score= -(int) ((-db_score+avg_scores)*5.5/(-scor_minim + avg_scores));
-                }
+                db_score= (int) (6f - (double)(lista.size()-i)/(double)lista.size() * 11f);
                 String SQLString1 = "UPDATE Proprietati "
                         + "SET evaluare = ? "
                         + "WHERE id_proprietate = ?";
