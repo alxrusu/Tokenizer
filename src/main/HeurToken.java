@@ -25,11 +25,33 @@ public class HeurToken {
 
     }
 
-    private static void logToken (String message) {
+    private static void logToken (Token token, String word) {
         try {
             BufferedWriter bw = null;
             bw = new BufferedWriter(new FileWriter(logFile, true));
-            bw.write(message);
+            if (token == null)
+                bw.write("(E) ");
+            else {
+                switch (token.getType()) {
+                    case Token.TYPE_FEATURE:
+                        bw.write("(E) ");
+                        break;
+                    case Token.TYPE_ATTRIBUTE:
+                        bw.write("(A) ");
+                        break;
+                    case Token.TYPE_MODIFIER:
+                        bw.write("(M) ");
+                        break;
+                    case Token.TYPE_IGNORE:
+                        bw.write("(I) ");
+                        break;
+                }
+            }
+            bw.write(word);
+            if (token != null) {
+                bw.write(" : ");
+                bw.write(String.valueOf(token.getTokenScore()));
+            }
             bw.newLine();
             bw.flush();
             bw.close();
@@ -39,8 +61,8 @@ public class HeurToken {
     }
 
 
-    private static int generateScore (int wordLength, int defLength) {
-        return (int) Math.sqrt(wordLength + Math.sqrt(defLength));
+    private static float generateScore (int wordLength, int defLength) {
+        return (float) Math.sqrt(wordLength + Math.sqrt(defLength));
     }
 
     public static Token generateHeurToken (String word) {
@@ -64,11 +86,12 @@ public class HeurToken {
                     type = Token.TYPE_IGNORE;
             }
 
-            logToken (word + " : " + generateScore(word.length(), def.length()));
-            return new Token (word, type, generateScore(word.length(), def.length()));
+            Token token = new Token (word, type, generateScore(word.length(), def.length()));
+            logToken(token, word);
+            return token;
 
         } catch (Exception e) {
-            logToken (word + " : ERROR");
+            logToken (null, word);
             return null;
         }
     }

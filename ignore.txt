@@ -112,7 +112,6 @@ este
 esti
 eu
 face
-fara
 fata
 fi
 fie
@@ -121,7 +120,6 @@ fii
 fim
 fiti
 fiu
-frumos
 gratie
 halba
 iar
@@ -148,7 +146,6 @@ linga
 lor
 lui
 ma
-mai
 maine
 mea
 mei
@@ -178,7 +175,6 @@ noroc
 nostri
 nostru
 noua
-nu
 opt
 ori
 oricand
@@ -201,13 +197,9 @@ pic
 pina
 poate
 pot
-prea
 prima
 primul
 prin
-putin
-putina
-putina
 rog
 sa
 sa

@@ -18,9 +18,10 @@ public class Main {
     static final String USER = "stefania.baincescu";
     static final String PASS = "Alex0974";
 
-    static Path ignorespath= Paths.get("ignore.txt");
-    static Path featurespath= Paths.get("features.txt");
-    static Path attributespath= Paths.get("attributes.txt");
+    static Path ignorespath = Paths.get("ignore.txt");
+    static Path featurespath = Paths.get("features.txt");
+    static Path modifierspath = Paths.get("modifiers.txt");
+    static Path attributespath = Paths.get("attributes.txt");
     static Charset charset = Charset.forName("ISO-8859-1");
 
     static Map tokens=new HashMap<>();
@@ -41,11 +42,18 @@ public class Main {
         lines = Files.readAllLines(attributespath, charset);
         for (String line : lines) {
             //System.out.println(line);
-            String tok=line.substring(0,line.indexOf(" : "));
+            String tok = line.substring(0,line.indexOf(" : "));
             value = Float.parseFloat (line.substring(line.indexOf(" : ") + 3));
             tokens.put (tok, new Token (tok, Token.TYPE_ATTRIBUTE, value));
         }
 
+        lines = Files.readAllLines(modifierspath, charset);
+        for (String line : lines) {
+            //System.out.println(line);
+            String tok = line.substring(0,line.indexOf(" : "));
+            value = Float.parseFloat (line.substring(line.indexOf(" : ") + 3));
+            tokens.put (tok, new Token (tok, Token.TYPE_MODIFIER, value));
+        }
 
         lines = Files.readAllLines(ignorespath, charset);
         for (String line : lines) {
@@ -54,64 +62,75 @@ public class Main {
 
     }
 
+    private static Node base;
+    private static Node lastFeature;
 
-    public static float EvalTokens(ArrayList<String> tklist) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    public static void EvalTokens (ArrayList<String> tklist) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
 
-        int sum=0;
-        float current_tok=0;
-        int num_toks=0;
+        ArrayList<Node> modifiers = new ArrayList<>();
+        ArrayList<Node> attributes = new ArrayList<>();
 
         for (String tk : tklist) {
 
-            Token temptk;
+            Token currentToken;
 
             if (tokens.containsKey(tk)) {
-                temptk = (Token) tokens.get(tk);
+                currentToken = (Token) tokens.get(tk);
             } else {
-                temptk = HeurToken.generateHeurToken(tk);
-                if (temptk == null)
+                currentToken = HeurToken.generateHeurToken(tk);
+                if (currentToken == null)
                     continue;
+                tokens.put (tk, currentToken);
             }
 
 
-            switch (temptk.getType()) {
+            switch (currentToken.getType()) {
+
                 case Token.TYPE_FEATURE:
-                    sum += current_tok;
-                    num_toks++;
-                    current_tok = temptk.getScore();
+                    lastFeature = new Node (currentToken, attributes);
+                    base.addLink (lastFeature);
+                    attributes = new ArrayList<>();
                     System.out.print("F");
                     break;
 
                 case Token.TYPE_ATTRIBUTE:
-                    current_tok += temptk.getScore(); //PLUS SI VEDEM NOI MAI INCOLO - Lucian - 2016
-                    if (current_tok == 0) {
-                        current_tok = temptk.getScore();
-                        num_toks++;
-                    }
+                    if (lastFeature == null)
+                        attributes.add (new Node (currentToken, modifiers));
+                    else
+                        lastFeature.addLink (new Node (currentToken, modifiers));
+                    modifiers = new ArrayList<>();
                     System.out.print("A");
+                    break;
+
+                case Token.TYPE_MODIFIER:
+                    modifiers.add (new Node (currentToken));
+                    System.out.print("M");
                     break;
 
                 case Token.TYPE_IGNORE:
                     System.out.print("I");
+                    break;
 
             }
 
         }
 
-        sum += current_tok;
-        System.out.print("\n");
+        if (modifiers.size() > 0 && lastFeature != null) {
+            for (Node modifier : modifiers)
+                lastFeature.addLink(modifier);
+        }
+        System.out.println();
 
-        if (num_toks==0)
-            return 0;
-        return sum/num_toks;
     }
 
     public static float Digest(String descriere) throws Exception {
 
         while (descriere.contains(","))
             descriere=descriere.substring(0,descriere.indexOf(","))+descriere.substring(descriere.indexOf(",")+1);
-        float scor = 0, scor_partial;
-        int nr_propozitii=0;
+
+        base = new Node(new Token("", Token.TYPE_IGNORE, 0f));
+        lastFeature = null;
+
         while (descriere.length()>0) {
             int findex=descriere.indexOf(".");
             if (descriere.indexOf("!")<findex && descriere.contains("!"))
@@ -136,16 +155,13 @@ public class Main {
             }
 
             //System.out.println(tklist);
-            scor_partial = EvalTokens(tklist);
-            //System.out.println(scor_partial);
-            scor += scor_partial;
-            nr_propozitii++;
+            EvalTokens(tklist);
             //System.out.println(prop);
             //------------------------------------
         }
-        if (nr_propozitii<=1)
-            return scor;
-        return (scor/(1f + (float) Math.pow (nr_propozitii, 0.95f)));
+
+        //System.out.println(base.toString());
+        return base.getScore() / (float) Math.pow (base.getFeatureCount(), 0.95f);
 
     }
 
@@ -179,7 +195,7 @@ public class Main {
                 scor_anterior = rs.getInt("evaluare");
                 id = rs.getInt("id_proprietate");
                 String descriere = rs.getString("descriere");
-                //rc++;
+                rc++;
                 System.out.println(id +" OLD : " + scor_anterior);
                 scor = Digest(descriere);
 
@@ -188,9 +204,6 @@ public class Main {
 
             }
 
-            //if (rc!=0)
-            //    System.exit(0);
-
             ScoreNormaliser.UniformDistribution (scoreList);
 
             counter=0;
@@ -198,7 +211,7 @@ public class Main {
             {
                 id = scoreList.get(i).id;
                 scor = scoreList.get(i).score;
-                System.out.println("Updating Score for : "+counter++);
+                //System.out.println("Updating Score for : "+counter++);
                 String SQLString1 = "UPDATE Proprietati "
                         + "SET evaluare = ? "
                         + "WHERE id_proprietate = ?";

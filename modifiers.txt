@@ -1,0 +1,8 @@
+nu : -1
+mai : 1.2
+foarte : 1.5
+prea : 1.1
+deloc : 0
+fara : -1
+putin : 0.4
+putina : 0.4

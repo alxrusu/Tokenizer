@@ -4,6 +4,7 @@ public class Token {
 
     public static final int TYPE_FEATURE = 1;
     public static final int TYPE_ATTRIBUTE = 2;
+    public static final int TYPE_MODIFIER = 3;
     public static final int TYPE_IGNORE =0;
 
     private String string;
@@ -27,7 +28,8 @@ public class Token {
         return type;
     }
 
-    public float getScore() {
+    public float getTokenScore() {
         return score;
     }
+
 }
