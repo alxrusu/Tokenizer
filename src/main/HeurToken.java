@@ -67,9 +67,10 @@ public class HeurToken {
 
     public static Token generateHeurToken (String word) {
 
-        word = word.toLowerCase().trim();
-        if (word.length() < 3)
+        WordValidator wv=new WordValidator(word);
+        if (!wv.validate())
             return null;
+        word = wv.removeRubbish();
 
         try {
             String def = AskDexonline(word);
