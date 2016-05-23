@@ -2,7 +2,7 @@ package main.Utilities;
 
 public class WordCleaner {
 
-    static final String removeCharacters = "0123456789:()";
+    static final String removeCharacters = "0123456789:()\"+";
 
     public static String clean (String word) {
 

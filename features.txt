@@ -90,6 +90,7 @@ brazi : 18
 bucataria : 12
 bucatarie : 12
 bucatarii : 12
+bucium : 0
 bulevard : 10.5
 buton : 6
 cablu : 12.5
@@ -173,6 +174,7 @@ controlul : 0
 copii : 19.5
 corpul : 4.5
 credit : -3
+cug : 0
 culori : 8.5
 cupru : 5
 cuptor : 10
@@ -195,6 +197,8 @@ dispecer : 12.5
 dispozitie : 11
 distanta : 2
 distribuitoare : 4
+dormitoare : 7
+dormitoarele : 7
 dormitor : 11
 dotari : 12
 dotarile : 12
@@ -256,6 +260,7 @@ fum : -10
 functie : 0
 fundatia : 11
 fundatie : 11
+galata : 0
 gama : 4
 garaj : 22
 garajul : 22
@@ -296,6 +301,7 @@ hota : 7
 hotel : 9.5
 hotelul : 9.5
 hotelului : 9.5
+hypermarketuri : 10
 iluminare : 15
 imbunatatiri : 4
 imbunatatirile : 4
@@ -343,6 +349,7 @@ jardiniera : 10
 joaca : 13
 justitie : 0
 justitiei : 0
+kaufland : 0
 laminat : 7
 lemn : 4
 lemnul : 4
@@ -374,6 +381,7 @@ lupului : 0
 magazie : 11
 mall : 24
 manastirea : 9
+mansarda : 10
 marmura : 7
 masina : 8
 masini : 8
@@ -465,6 +473,7 @@ podul : 18
 polistiren : -3
 polistirenul : -3
 poluarea : -15
+pomi : 4
 popas : 11
 posibilitate : 2
 posibilitatea : 2
@@ -603,12 +612,14 @@ termen : 0
 termoizolatia : 11
 termoizolatie : 11
 termopan : 8
+termosistem : 8
 termostat : 6
 tigarete : 0
 tigla : 5
 titlu : 1
 top : 5
 totalitate : 11
+trafic : -6
 traficul : -5
 traiul : 4
 transferul : 2
@@ -629,6 +640,7 @@ umiditate : -1
 unicitatea : -1
 unirii : 0
 unitate : 1
+universitate : 13.5
 universitatea : 13.5
 universitatii : 13.5
 usa : 8

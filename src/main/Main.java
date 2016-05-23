@@ -204,7 +204,7 @@ public class Main {
                 scor_anterior = rs.getInt("evaluare");
                 id = rs.getInt("id_proprietate");
                 String descriere = rs.getString("descriere");
-                rc++;
+                //rc++;
                 System.out.println(id +" OLD : " + scor_anterior);
                 scor = Digest(descriere);
 

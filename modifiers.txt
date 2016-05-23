@@ -2,6 +2,7 @@ deloc : 0
 extrem : 2
 fara : -1
 foarte : 1.5
+incontestabil : 1.15
 jumatate : 0.5
 mai : 1.2
 mult : 1.3

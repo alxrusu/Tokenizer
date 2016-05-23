@@ -37,7 +37,7 @@ public class HeurToken {
             else {
                 switch (token.getType()) {
                     case Token.TYPE_FEATURE:
-                        bw.write("(E) ");
+                        bw.write("(F) ");
                         break;
                     case Token.TYPE_ATTRIBUTE:
                         bw.write("(A) ");
@@ -51,7 +51,7 @@ public class HeurToken {
                 }
             }
             bw.write(word);
-            if (token != null) {
+            if (token != null && token.getType() != Token.TYPE_IGNORE) {
                 bw.write(" : ");
                 bw.write(String.valueOf(token.getTokenScore()));
             }
@@ -65,12 +65,11 @@ public class HeurToken {
 
 
     private static float generateScore (int wordLength, int defLength) {
-        return (float) Math.sqrt(wordLength + Math.sqrt(defLength));
+        return (float) Math.sqrt(wordLength + Math.sqrt(defLength/2));
     }
 
     public static Token generateHeurToken (String word) {
 
-        word = word.toLowerCase().trim();
         if (word.length() < 3)
             return null;
 
