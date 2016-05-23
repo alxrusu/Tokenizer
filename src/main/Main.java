@@ -1,5 +1,12 @@
 package main;
 
+import main.Tokens.HeurToken;
+import main.Tokens.Token;
+import main.Utilities.Node;
+import main.Utilities.ScoreNormaliser;
+import main.Utilities.Tuple;
+import main.Utilities.WordCleaner;
+
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.Charset;
@@ -36,7 +43,7 @@ public class Main {
             //System.out.println(line);
             String tok = line.substring(0,line.indexOf(" : "));
             value = Float.parseFloat (line.substring(line.indexOf(" : ") + 3));
-            tokens.put (tok, new Token (tok, Token.TYPE_FEATURE, value));
+            tokens.put (tok, new Token(tok, Token.TYPE_FEATURE, value));
         }
 
         lines = Files.readAllLines(attributespath, charset);
@@ -57,6 +64,7 @@ public class Main {
 
         lines = Files.readAllLines(ignorespath, charset);
         for (String line : lines) {
+            //System.out.println(line);
             tokens.put (line, new Token(line,Token.TYPE_IGNORE, 0));
         }
 
@@ -148,9 +156,10 @@ public class Main {
             //-----Tokenizare pe propozitii-------
             //System.out.println("------------------------------");
             StringTokenizer st = new StringTokenizer(prop);
-            ArrayList<String> tklist=new ArrayList<>();
+            ArrayList<String> tklist = new ArrayList<>();
             while (st.hasMoreTokens()) {
-                String ctok=st.nextToken().toLowerCase();
+                String ctok = st.nextToken();
+                ctok = WordCleaner.clean(ctok);
                 tklist.add(ctok);
             }
 
@@ -160,7 +169,7 @@ public class Main {
             //------------------------------------
         }
 
-        //System.out.println(base.toString());
+        System.out.println(base.toString());
         return base.getScore() / (float) Math.pow (base.getFeatureCount(), 0.95f);
 
     }

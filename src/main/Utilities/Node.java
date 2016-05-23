@@ -1,4 +1,6 @@
-package main;
+package main.Utilities;
+
+import main.Tokens.Token;
 
 import java.util.ArrayList;
 

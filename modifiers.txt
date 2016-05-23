@@ -1,8 +1,12 @@
-nu : -1
-mai : 1.2
-foarte : 1.5
-prea : 1.1
 deloc : 0
+extrem : 2
 fara : -1
+foarte : 1.5
+jumatate : 0.5
+mai : 1.2
+mult : 1.3
+multe : 1.3
+nu : -1
+prea : 1.1
 putin : 0.4
 putina : 0.4

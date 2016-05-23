@@ -1,4 +1,6 @@
-package main;
+package main.Tokens;
+
+import main.Tokens.Token;
 
 import java.io.*;
 import java.net.URL;
@@ -7,6 +9,7 @@ import java.net.URLConnection;
 public class HeurToken {
 
     private static String logFile = "unclassified.txt";
+    private static String negativeWords[] = {" nu ", " lipsit ", " lipsita ", " fara "};
 
     private static String AskDexonline (String word) throws Exception {
 
@@ -73,7 +76,8 @@ public class HeurToken {
 
         try {
             String def = AskDexonline(word);
-            int type;
+            int type, signum = 1;
+            float score;
             switch (def.substring(def.indexOf("title=") + 7, def.indexOf("title=") + 10)) {
                 case "sub":
                     type = Token.TYPE_FEATURE;
@@ -86,8 +90,16 @@ public class HeurToken {
                     type = Token.TYPE_IGNORE;
             }
 
-            Token token = new Token (word, type, generateScore(word.length(), def.length()));
-            logToken(token, word);
+            for (String lookFor : negativeWords) {
+                if (def.contains(lookFor)) {
+                    signum = -1;
+                    break;
+                }
+            }
+
+            score = signum * generateScore(word.length(), def.length());
+            Token token = new Token (word, type, score);
+            logToken (token, word);
             return token;
 
         } catch (Exception e) {
